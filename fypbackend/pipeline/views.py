@@ -65,31 +65,66 @@ class CheckTaskProgress(APIView):
 
 
 class MostFrequentEntityView(APIView):
-    def get(self, request, *args, **kwargs):
-        query = """
-            SELECT t.entity, COUNT(t.entity) AS entity_count
+    def post(self, request, *args, **kwargs):
+        # Extract start_date, end_date, and limit from the request data
+        start_date = request.data.get("start_date", "2020-01-01")
+        end_date = request.data.get("end_date", "2024-12-31")
+        limit = request.data.get("limit", 5)
+
+        # First, query to get the most frequent entities
+        query_entities = """
+            SELECT t.entity, COUNT(DISTINCT DATE(v.published_date)) AS distinct_days_count
             FROM pipeline_topic t
             JOIN pipeline_video v ON t.video_id = v.id
-            WHERE v.published_date BETWEEN '2024-01-01' AND '2024-12-31'
+            WHERE v.published_date BETWEEN %s AND %s
             GROUP BY t.entity
-            ORDER BY entity_count DESC
-            LIMIT 10;
+            ORDER BY distinct_days_count DESC
+            LIMIT %s;
         """
+        
         try:
-            # Execute the query
+            # Open a cursor for the first query to get the most frequent entities
             with connection.cursor() as cursor:
-                cursor.execute(query)
-                results = cursor.fetchall()  # Fetch all rows
+                cursor.execute(query_entities, [start_date, end_date, limit])
+                entities = cursor.fetchall()  # Fetch all entities
 
-            # Format the response
-            if results:
-                data = [
-                    {"entity": row[0], "entity_count": row[1]}
-                    for row in results
-                ]
-                return Response(data, status=status.HTTP_200_OK)
-            else:
-                return Response({"message": "No data found"}, status=status.HTTP_404_NOT_FOUND)
+            if not entities:
+                return Response({"message": "No entities found"}, status=status.HTTP_404_NOT_FOUND)
+            
+            print(entities)
+
+            # Now, query for each entity to get the details
+            results = []
+            for entity in entities:
+                entity_name = entity[0]
+                
+                # Open a new cursor for the second query to get details for the current entity
+                with connection.cursor() as cursor:
+                    query_details = """
+                        SELECT DATE(v.published_date) AS specific_date, t.entity, COUNT(DISTINCT t.id) AS entity_count,
+                               GROUP_CONCAT(t.content, ', ') AS contents
+                        FROM pipeline_topic t
+                        JOIN pipeline_video v ON t.video_id = v.id
+                        WHERE t.entity = %s AND v.published_date BETWEEN %s AND %s
+                        GROUP BY DATE(v.published_date), t.entity
+                        ORDER BY specific_date;
+                    """
+                    
+                    cursor.execute(query_details, [entity_name, start_date, end_date])
+                    entity_details = cursor.fetchall()  # Fetch details for the entity
+
+                # Format the entity details
+                entity_data = {
+                    "entity": entity_name,
+                    "data": [
+                        {"specific_date": row[0], "entity_count": row[2], "contents": row[3]}
+                        for row in entity_details
+                    ]
+                }
+                results.append(entity_data)
+
+            # Return the results as a JSON response
+            return Response(results, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
