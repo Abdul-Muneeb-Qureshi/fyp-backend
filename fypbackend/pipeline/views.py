@@ -101,7 +101,7 @@ class MostFrequentEntityView(APIView):
                 # Open a new cursor for the second query to get details for the current entity
                 with connection.cursor() as cursor:
                     query_details = """
-                        SELECT DATE(v.published_date) AS specific_date, t.entity, COUNT(DISTINCT t.id) AS entity_count,
+                        SELECT DATE(v.published_date) AS specific_date, t.entity, COUNT(DISTINCT t.video_id) AS entity_count,
                                GROUP_CONCAT(t.content, ', ') AS contents
                         FROM pipeline_topic t
                         JOIN pipeline_video v ON t.video_id = v.id

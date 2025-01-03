@@ -10,7 +10,7 @@ SELECT t.entity, COUNT(DISTINCT DATE(v.published_date)) AS distinct_days_count F
 کرپشن|6
 
 
-SELECT DATE(v.published_date) AS specific_date, t.entity, COUNT(t.id) AS entity_count FROM pipeline_topic t JOIN pipeline_video v ON t.video_id = v.id WHERE t.entity = 'پاکستان' AND v.published_date BETWEEN '2020-01-01' AND '2024-12-31' GROUP BY DATE(v.published_date), t.entity ORDER BY specific_date;
+SELECT DATE(v.published_date) AS specific_date, t.entity, COUNT(t.id) AS entity_count , COUNT(DISTINCT t.id) AS entity_count FROM pipeline_topic t JOIN pipeline_video v ON t.video_id = v.id WHERE t.entity = 'پاکستان' AND v.published_date BETWEEN '2020-01-01' AND '2024-12-31' GROUP BY DATE(v.published_date), t.entity ORDER BY specific_date;
 
 2024-05-02|پاکستان|1
 2024-05-04|پاکستان|1
