@@ -58,6 +58,11 @@ from .serializers import RegisterSerializer, UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 
 
+import hashlib
+import datetime
+from django.conf import settings
+
+
 class RegisterAPIView(APIView):
     permission_classes = [AllowAny]
 
@@ -119,3 +124,54 @@ class UserDetailAPIView(APIView):
         user = request.user  # Get the currently authenticated user
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CreatePaymentAPIView(APIView):
+    def post(self, request):
+
+        plan = request.data.get('plan')  # Use request.data for JSON POST data
+        amount = {
+            'basic': 29,
+            'standard': 99,
+            'premium': 499
+        }.get(plan, 0)
+
+        if not amount:
+            return Response({'error': 'Invalid plan selected'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # JazzCash credentials
+        merchant_id = settings.JAZZCASH_MERCHANT_ID
+        password = settings.JAZZCASH_PASSWORD
+        integrity_salt = settings.JAZZCASH_INTEGRITY_SALT
+        date_time = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
+
+        post_data = {
+            'pp_Version': '1.1',
+            'pp_TxnType': 'MWALLET',
+            'pp_Language': 'EN',
+            'pp_MerchantID': merchant_id,
+            'pp_Password': password,
+            'pp_Amount': str(int(amount * 100)),  # Amount in paisa
+            'pp_TxnRefNo': f'TXN-{date_time}',
+            'pp_Description': f'Subscription for {plan} plan',
+            'pp_TxnDateTime': date_time,
+            'pp_BillReference': 'billRef',
+            'pp_TransactionID': '',
+            'pp_ReturnURL': 'http://127.0.0.1:8000/',
+        }
+
+        # Generate secure hash
+        sorted_keys = sorted(post_data.keys())
+        hash_string = '&'.join(f'{key}={post_data[key]}' for key in sorted_keys)
+        hash_string = integrity_salt + '&' + hash_string
+        secure_hash = hashlib.sha256(hash_string.encode('utf-8')).hexdigest()
+        post_data['pp_SecureHash'] = secure_hash
+
+        # JazzCash payment URL
+        payment_url = 'https://sandbox.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform.aspx'
+
+        return Response({'paymentUrl': payment_url, 'postData': post_data}, status=status.HTTP_200_OK)
+    def get(self, request):
+
+        return Response({'message' : "working"}, status=status.HTTP_200_OK)
+

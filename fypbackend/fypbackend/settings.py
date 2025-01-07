@@ -187,3 +187,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+JAZZCASH_MERCHANT_ID = 'MC147437'
+JAZZCASH_PASSWORD = 't43b680sw8'
+JAZZCASH_INTEGRITY_SALT = 'sw01xv0516'
+JAZZCASH_RETURN_URL = 'http://127.0.0.1:8000/'
