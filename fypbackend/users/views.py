@@ -56,12 +56,13 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from .serializers import RegisterSerializer, UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+from .authentication import CookieJWTAuthentication
+
 
 
 import hashlib
 import datetime
 from django.conf import settings
-
 
 class RegisterAPIView(APIView):
     permission_classes = [AllowAny]
@@ -71,10 +72,8 @@ class RegisterAPIView(APIView):
         if serializer.is_valid():
             user = serializer.save()  # Save user and create Profile in the serializer
             refresh = RefreshToken.for_user(user)
-            return Response({
+            response = Response({
                 "message": "User created successfully",
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
                 "user": {
                     "id": user.id,
                     "username": user.username,
@@ -86,6 +85,24 @@ class RegisterAPIView(APIView):
                     },
                 }
             }, status=status.HTTP_201_CREATED)
+            # Set cookies for refresh and access tokens
+            response.set_cookie(
+                key='access_token',
+                value=str(refresh.access_token),
+                httponly=True,
+                secure=False,  # Set to True in production
+                samesite='Lax',
+                expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+            )
+            response.set_cookie(
+                key='refresh_token',
+                value=str(refresh),
+                httponly=True,
+                secure=False,  # Set to True in production
+                samesite='Lax',
+                expires=datetime.datetime.utcnow() + datetime.timedelta(days=7)
+            )
+            return response
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -98,10 +115,8 @@ class LoginAPIView(APIView):
         user = authenticate(request, username=username, password=password)
         if user:
             refresh = RefreshToken.for_user(user)
-            return Response({
+            response = Response({
                 "message": "Login successful",
-                "refresh": str(refresh),
-                "access": str(refresh.access_token),
                 "user": {
                     "id": user.id,
                     "username": user.username,
@@ -113,11 +128,28 @@ class LoginAPIView(APIView):
                     },
                 }
             }, status=status.HTTP_200_OK)
+            # Set cookies for refresh and access tokens
+            response.set_cookie(
+                key='access_token',
+                value=str(refresh.access_token),
+                httponly=True,
+                secure=False,  # Set to True in production
+                samesite='Lax',
+                expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=1)
+            )
+            response.set_cookie(
+                key='refresh_token',
+                value=str(refresh),
+                httponly=True,
+                secure=False,  # Set to True in production
+                samesite='Lax',
+                expires=datetime.datetime.utcnow() + datetime.timedelta(days=7)
+            )
+            return response
         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
-
 class UserDetailAPIView(APIView):
-    authentication_classes = [JWTAuthentication]
+    authentication_classes = [CookieJWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
@@ -125,6 +157,30 @@ class UserDetailAPIView(APIView):
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+class RefreshTokenAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_token = request.COOKIES.get('refresh_token')
+        if not refresh_token:
+            return Response({"error": "Refresh token not found in cookies"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            refresh = RefreshToken(refresh_token)
+            access_token = refresh.access_token
+            response = Response({
+                "message": "Access token refreshed successfully",
+            }, status=status.HTTP_200_OK)
+            response.set_cookie(
+                key='access_token',
+                value=str(access_token),
+                httponly=True,
+                secure=False,  # Set to True in production
+                samesite='Lax',
+                expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+            )
+            return response
+        except Exception as e:
+            return Response({"error": "Invalid refresh token"}, status=status.HTTP_400_BAD_REQUEST)
 
 class CreatePaymentAPIView(APIView):
     def post(self, request):
