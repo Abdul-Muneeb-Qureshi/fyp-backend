@@ -19,12 +19,12 @@ class ContactFormView(APIView):
                 f"Email: {data['email']}\n"
                 f"Message: {data['message']}\n"
             )
-            sender_email = "your_email@gmail.com"  # Replace with your Gmail address
-            recipient_email = "techtitans121526@example.com"  # Replace with the recipient's email address
+            sender_email = "techtitans121526@gmail.com"  # Replace with your Gmail address
+            recipient_email = "techtitans121526@gmail.com"  # Replace with the recipient's email address
 
             try:
                 # Send email using Gmail
-                send_mail(subject, message, sender_email, [recipient_email])
+                send_mail(subject, message, sender_email, [recipient_email] ,  data['email'])
 
                 return Response({"message": "Message sent successfully!"}, status=status.HTTP_200_OK)
             except Exception as e:
