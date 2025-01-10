@@ -133,16 +133,16 @@ class LoginAPIView(APIView):
                 key='access_token',
                 value=str(refresh.access_token),
                 httponly=True,
-                secure=False,  # Set to True in production
-                samesite='Lax',
+                secure=True,  # Set to True in production
+                samesite='None',
                 expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=1)
             )
             response.set_cookie(
                 key='refresh_token',
                 value=str(refresh),
                 httponly=True,
-                secure=False,  # Set to True in production
-                samesite='Lax',
+                secure=True,  # Set to True in production
+                samesite='None',
                 expires=datetime.datetime.utcnow() + datetime.timedelta(days=7)
             )
             return response
@@ -153,6 +153,8 @@ class UserDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        raw_token = request.COOKIES.get('access_token')
+        print(raw_token)
         user = request.user  # Get the currently authenticated user
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)

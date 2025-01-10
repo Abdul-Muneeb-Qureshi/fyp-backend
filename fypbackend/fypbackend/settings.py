@@ -37,6 +37,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -46,7 +47,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'users',
     'pipeline',
-    'corsheaders',
     'contact',
 
 ]
@@ -206,3 +206,7 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'techtitans121526@gmail.com'  # Replace with your Gmail address
 EMAIL_HOST_PASSWORD = 'dbax ctdu fmlh txpy'  # Replace with your Gmail app password
+
+
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
