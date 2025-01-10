@@ -90,7 +90,7 @@ class RegisterAPIView(APIView):
                 key='access_token',
                 value=str(refresh.access_token),
                 httponly=True,
-                secure=False,  # Set to True in production
+                secure=True,  # Set to True in production
                 samesite='Lax',
                 expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
             )
@@ -98,8 +98,8 @@ class RegisterAPIView(APIView):
                 key='refresh_token',
                 value=str(refresh),
                 httponly=True,
-                secure=False,  # Set to True in production
-                samesite='Lax',
+                secure=True,  # Set to True in production
+                samesite='None',
                 expires=datetime.datetime.utcnow() + datetime.timedelta(days=7)
             )
             return response
@@ -176,8 +176,8 @@ class RefreshTokenAPIView(APIView):
                 key='access_token',
                 value=str(access_token),
                 httponly=True,
-                secure=False,  # Set to True in production
-                samesite='Lax',
+                secure=True,  # Set to True in production
+                samesite='None',
                 expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
             )
             return response
