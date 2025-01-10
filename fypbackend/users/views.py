@@ -91,7 +91,7 @@ class RegisterAPIView(APIView):
                 value=str(refresh.access_token),
                 httponly=True,
                 secure=True,  # Set to True in production
-                samesite='Lax',
+                samesite='None',
                 expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
             )
             response.set_cookie(
