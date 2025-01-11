@@ -131,7 +131,6 @@ class MostFrequentEntityView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-
 class MostFrequentEntitybyChannelView(APIView):
     def post(self, request, *args, **kwargs):
         # Extract start_date, end_date, and limit from the request data
@@ -172,7 +171,8 @@ class MostFrequentEntitybyChannelView(APIView):
                             t.content AS topic_content, 
                             c.file_path AS chunk_path, 
                             v.file_name AS video_filename, 
-                            ch.name AS channel_name
+                            ch.name AS channel_name,
+                            ch.icon AS channel_icon
                         FROM 
                             pipeline_topic t
                         JOIN 
@@ -196,13 +196,16 @@ class MostFrequentEntitybyChannelView(APIView):
 
                 # Group rows by channel_name and then by video_filename
                 grouped_data = defaultdict(lambda: defaultdict(list))
+                channel_icons = {}
                 for row in rows:
                     channel_name = row[3]
+                    channel_icon = row[4]
                     video_filename = row[2]
                     grouped_data[channel_name][video_filename].append({
                         "topic_content": row[0],
                         "chunk_path": row[1],
                     })
+                    channel_icons[channel_name] = channel_icon
 
                 # Format the entity data
                 entity_data = {
@@ -210,6 +213,7 @@ class MostFrequentEntitybyChannelView(APIView):
                     "channels": [
                         {
                             "channel_name": channel_name,
+                            "channel_icon": channel_icons[channel_name],
                             "videos": [
                                 {
                                     "video_filename": video_filename,
@@ -224,12 +228,8 @@ class MostFrequentEntitybyChannelView(APIView):
 
                 results.append(entity_data)
 
-
-
             # Return the results as a JSON response
             return Response(results, status=status.HTTP_200_OK)
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-

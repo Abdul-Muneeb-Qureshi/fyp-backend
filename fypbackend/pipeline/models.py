@@ -1,10 +1,11 @@
 from django.db import models
 
 class Channel(models.Model):
-    name = models.CharField(max_length=255, unique=True)  
+    name = models.CharField(max_length=255, unique=True)
+    icon = models.CharField(max_length=255, null=True, blank=True)  # Add this field
+    
     def __str__(self):
         return self.name
-
 
 
 # Video Model
