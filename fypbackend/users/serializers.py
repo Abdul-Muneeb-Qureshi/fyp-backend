@@ -61,3 +61,36 @@ class RegisterSerializer(serializers.ModelSerializer):
 
         Profile.objects.create(user=user, **profile_data)
         return user
+
+
+
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ['city', 'contact', 'role']  # Fields you want to update
+
+class UserUpdateSerializer(serializers.ModelSerializer):
+    profile = ProfileUpdateSerializer()  # Nested serializer for updating Profile
+
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'profile']  # Fields you want to allow updates for
+
+    def update(self, instance, validated_data):
+        # Handle updates for the Profile model
+        profile_data = validated_data.pop('profile', None)
+
+        if profile_data:
+            profile_instance = instance.profile
+            for key, value in profile_data.items():
+                setattr(profile_instance, key, value)
+            profile_instance.save()
+
+        # Handle updates for the User model
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+
+        return instance

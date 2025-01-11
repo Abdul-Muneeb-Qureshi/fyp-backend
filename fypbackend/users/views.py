@@ -54,9 +54,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from .serializers import RegisterSerializer, UserSerializer
+from .serializers import RegisterSerializer, UserSerializer , UserUpdateSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .authentication import CookieJWTAuthentication
+from django.contrib.auth.hashers import check_password
+
 
 
 
@@ -135,7 +137,7 @@ class LoginAPIView(APIView):
                 httponly=True,
                 secure=True,  # Set to True in production
                 samesite='None',
-                expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=1)
+                expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
             )
             response.set_cookie(
                 key='refresh_token',
@@ -153,8 +155,7 @@ class UserDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        raw_token = request.COOKIES.get('access_token')
-        print(raw_token)
+        
         user = request.user  # Get the currently authenticated user
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -183,6 +184,79 @@ class RefreshTokenAPIView(APIView):
             return response
         except Exception as e:
             return Response({"error": "Invalid refresh token"}, status=status.HTTP_400_BAD_REQUEST)
+
+class LogoutAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        response = Response({
+            "message": "Logout successful"
+        }, status=status.HTTP_200_OK)
+        
+        # Delete cookies for access and refresh tokens
+        response.delete_cookie('access_token')
+        response.delete_cookie('refresh_token')
+        return response
+
+class UserAPIView(APIView):
+    authentication_classes = [CookieJWTAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user  # Get the currently authenticated user
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)  
+
+    def put(self, request):
+        user = request.user
+        serializer = UserUpdateSerializer(user, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def post(self, request):
+        """
+        Handle password update.
+        """
+        user = request.user
+        data = request.data
+
+        # Validate required fields
+        previous_password = data.get("previous_password")
+        new_password = data.get("new_password")
+        reenter_password = data.get("reenter_password")
+
+        if not previous_password or not new_password or not reenter_password:
+            return Response(
+                {"message": "All fields are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if previous password matches the current password
+        if not check_password(previous_password, user.password):
+            return Response(
+                {"message": "Previous password is incorrect."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if new password matches re-entered password
+        if new_password != reenter_password:
+            return Response(
+                {"message": "New password and re-entered password do not match."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Update the user's password
+        user.set_password(new_password)
+        user.save()
+
+        return Response(
+            {"message": "Password updated successfully."},
+            status=status.HTTP_200_OK,
+        )
+
 
 class CreatePaymentAPIView(APIView):
     def post(self, request):
