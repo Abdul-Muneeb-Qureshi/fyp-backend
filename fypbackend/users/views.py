@@ -197,6 +197,16 @@ class LogoutAPIView(APIView):
         # Delete cookies for access and refresh tokens
         response.delete_cookie('access_token')
         response.delete_cookie('refresh_token')
+
+        response.set_cookie(
+                key='access_token',
+                value="",
+            )
+        response.set_cookie(
+                key='refresh_token',
+                value="",
+             
+            )     
         return response
 
 class UserAPIView(APIView):
