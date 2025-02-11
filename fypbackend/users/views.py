@@ -76,6 +76,7 @@ class RegisterAPIView(APIView):
             refresh = RefreshToken.for_user(user)
             response = Response({
                 "message": "User created successfully",
+                "action" : "success",
                 "user": {
                     "id": user.id,
                     "username": user.username,
@@ -119,6 +120,8 @@ class LoginAPIView(APIView):
             refresh = RefreshToken.for_user(user)
             response = Response({
                 "message": "Login successful",
+                "action" : "success",
+
                 "user": {
                     "id": user.id,
                     "username": user.username,
@@ -191,22 +194,16 @@ class LogoutAPIView(APIView):
 
     def post(self, request):
         response = Response({
-            "message": "Logout successful"
+            "message": "Logout successful",
+             "action" : "success",
+
         }, status=status.HTTP_200_OK)
         
         # Delete cookies for access and refresh tokens
         response.delete_cookie('access_token')
         response.delete_cookie('refresh_token')
 
-        response.set_cookie(
-                key='access_token',
-                value="",
-            )
-        response.set_cookie(
-                key='refresh_token',
-                value="",
-             
-            )     
+      
         return response
 
 class UserAPIView(APIView):
@@ -263,7 +260,8 @@ class UserAPIView(APIView):
         user.save()
 
         return Response(
-            {"message": "Password updated successfully."},
+            {"message": "Password updated successfully." , "action" : "success",
+},
             status=status.HTTP_200_OK,
         )
 
@@ -312,7 +310,7 @@ class CreatePaymentAPIView(APIView):
         # JazzCash payment URL
         payment_url = 'https://sandbox.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform.aspx'
 
-        return Response({'paymentUrl': payment_url, 'postData': post_data}, status=status.HTTP_200_OK)
+        return Response({'paymentUrl': payment_url, 'postData': post_data , "action" : "success",}, status=status.HTTP_200_OK)
     def get(self, request):
 
         return Response({'message' : "working"}, status=status.HTTP_200_OK)
