@@ -5,10 +5,10 @@ import hashlib
 from django.views.decorators.csrf import csrf_exempt
 
 # Constants
-JAZZCASH_MERCHANT_ID = "MC147437"
-JAZZCASH_PASSWORD = "t43b680sw8"
+JAZZCASH_MERCHANT_ID = ""
+JAZZCASH_PASSWORD = ""
 JAZZCASH_RETURN_URL = "http://127.0.0.1:8000/success"
-JAZZCASH_INTEGRITY_SALT = "sw01xv0516"
+JAZZCASH_INTEGRITY_SALT = ""
 
 # Exchange rate
 USD_TO_PKR_RATE = 280  # Example exchange rate (1 USD = 280 PKR)

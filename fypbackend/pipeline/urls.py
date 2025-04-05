@@ -9,10 +9,4 @@ urlpatterns = [
     path('most-frequent-entity-query-byChannel', MostFrequentEntitybyChannelView.as_view(), name='most-frequent-entity-query-byChannel'),
     path('get_all_channels', GetAllChannelsView.as_view(), name='get_all_channels'),
     path('channel_wise_entity', ChannelWiseEntityDistributionView.as_view(), name='channel_wise_entity'),
-
-
-
-
-
-
 ]
