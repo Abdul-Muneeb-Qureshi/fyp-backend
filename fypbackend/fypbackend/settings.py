@@ -192,21 +192,26 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+ALLOWED_HOSTS = ['your-app-name.onrender.com']  # Replace with real name after creating
 
-JAZZCASH_MERCHANT_ID = 'MC147437'
-JAZZCASH_PASSWORD = 't43b680sw8'
-JAZZCASH_INTEGRITY_SALT = 'sw01xv0516'
+
+
+JAZZCASH_MERCHANT_ID = ''
+JAZZCASH_PASSWORD = ''
+JAZZCASH_INTEGRITY_SALT = ''
 JAZZCASH_RETURN_URL = 'http://127.0.0.1:8000/'
 
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+EMAIL_BACKEND = ''
+EMAIL_HOST = ''
+EMAIL_PORT = 0
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'techtitans121526@gmail.com'  # Replace with your Gmail address
-EMAIL_HOST_PASSWORD = 'dbax ctdu fmlh txpy'  # Replace with your Gmail app password
+EMAIL_HOST_USER = ''  # Replace with your Gmail address
+EMAIL_HOST_PASSWORD = ''  # Replace with your Gmail app password
 
 
 CSRF_COOKIE_SECURE = False
 SESSION_COOKIE_SECURE = False
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
