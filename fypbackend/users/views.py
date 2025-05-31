@@ -1,52 +1,3 @@
-# from django.contrib.auth import authenticate
-# from django.contrib.auth.models import User
-# from rest_framework import status
-# from rest_framework.response import Response
-# from rest_framework.views import APIView
-# from rest_framework.permissions import AllowAny, IsAuthenticated
-# from rest_framework_simplejwt.authentication import JWTAuthentication
-# from .serializers import RegisterSerializer, UserSerializer
-# from rest_framework_simplejwt.tokens import RefreshToken
-
-
-# class RegisterAPIView(APIView):
-#     permission_classes = [AllowAny]
-
-#     def post(self, request):
-#         serializer = RegisterSerializer(data=request.data)
-#         if serializer.is_valid():
-#             user = serializer.save()
-#             user = User.objects.get(username = serializer.data['username'])
-#             refresh = RefreshToken.for_user(user)
-#             return Response({
-#                 "message": "User created successfully",
-#                 "refresh": str(refresh),
-#                 "access": str(refresh.access_token)
-#             }, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-# class LoginAPIView(APIView):
-#     permission_classes = [AllowAny]
-
-#     def post(self, request):
-#         username = request.data.get('username')
-#         password = request.data.get('password')
-#         user = authenticate(request, username=username, password=password)
-#         if user:
-#             return Response({"message": "Login successful"}, status=status.HTTP_200_OK)
-#         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
-
-# class UserDetailAPIView(APIView):
-
-#     authentication_classes = [JWTAuthentication]
-#     permission_classes = [IsAuthenticated]
-
-#     def get(self, request):
-#         users = User.objects.all() 
-#         serializer = UserSerializer(users, many=True) 
-#         return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import status
@@ -59,99 +10,96 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .authentication import CookieJWTAuthentication
 from django.contrib.auth.hashers import check_password
 
-
-
-
 import hashlib
 import datetime
 from django.conf import settings
 
-class RegisterAPIView(APIView):
-    permission_classes = [AllowAny]
+# class RegisterAPIView(APIView):
+#     permission_classes = [AllowAny]
 
-    def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()  # Save user and create Profile in the serializer
-            refresh = RefreshToken.for_user(user)
-            response = Response({
-                "message": "User created successfully",
-                "action" : "success",
-                "user": {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "profile": {
-                        "city": user.profile.city,
-                        "contact": user.profile.contact,
-                        "role": user.profile.role,
-                    },
-                }
-            }, status=status.HTTP_201_CREATED)
-            # Set cookies for refresh and access tokens
-            response.set_cookie(
-                key='access_token',
-                value=str(refresh.access_token),
-                httponly=True,
-                secure=True,  # Set to True in production
-                samesite='None',
-                expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
-            )
-            response.set_cookie(
-                key='refresh_token',
-                value=str(refresh),
-                httponly=True,
-                secure=True,  # Set to True in production
-                samesite='None',
-                expires=datetime.datetime.utcnow() + datetime.timedelta(days=7)
-            )
-            return response
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#     def post(self, request):
+#         serializer = RegisterSerializer(data=request.data)
+#         if serializer.is_valid():
+#             user = serializer.save()  # Save user and create Profile in the serializer
+#             refresh = RefreshToken.for_user(user)
+#             response = Response({
+#                 "message": "User created successfully",
+#                 "action" : "success",
+#                 "user": {
+#                     "id": user.id,
+#                     "username": user.username,
+#                     "email": user.email,
+#                     "profile": {
+#                         "city": user.profile.city,
+#                         "contact": user.profile.contact,
+#                         "role": user.profile.role,
+#                     },
+#                 }
+#             }, status=status.HTTP_201_CREATED)
+#             # Set cookies for refresh and access tokens
+#             response.set_cookie(
+#                 key='access_token',
+#                 value=str(refresh.access_token),
+#                 httponly=True,
+#                 secure=True,  # Set to True in production
+#                 samesite='None',
+#                 expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+#             )
+#             response.set_cookie(
+#                 key='refresh_token',
+#                 value=str(refresh),
+#                 httponly=True,
+#                 secure=True,  # Set to True in production
+#                 samesite='None',
+#                 expires=datetime.datetime.utcnow() + datetime.timedelta(days=7)
+#             )
+#             return response
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class LoginAPIView(APIView):
-    permission_classes = [AllowAny]
+# class LoginAPIView(APIView):
+#     permission_classes = [AllowAny]
 
-    def post(self, request):
-        username = request.data.get('username')
-        password = request.data.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user:
-            refresh = RefreshToken.for_user(user)
-            response = Response({
-                "message": "Login successful",
-                "action" : "success",
+#     def post(self, request):
+#         username = request.data.get('username')
+#         password = request.data.get('password')
+#         user = authenticate(request, username=username, password=password)
+#         if user:
+#             refresh = RefreshToken.for_user(user)
+#             response = Response({
+#                 "message": "Login successful",
+#                 "action" : "success",
 
-                "user": {
-                    "id": user.id,
-                    "username": user.username,
-                    "email": user.email,
-                    "profile": {
-                        "city": user.profile.city,
-                        "contact": user.profile.contact,
-                        "role": user.profile.role,
-                    },
-                }
-            }, status=status.HTTP_200_OK)
-            # Set cookies for refresh and access tokens
-            response.set_cookie(
-                key='access_token',
-                value=str(refresh.access_token),
-                httponly=True,
-                secure=True,  # Set to True in production
-                samesite='None',
-                expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
-            )
-            response.set_cookie(
-                key='refresh_token',
-                value=str(refresh),
-                httponly=True,
-                secure=True,  # Set to True in production
-                samesite='None',
-                expires=datetime.datetime.utcnow() + datetime.timedelta(days=7)
-            )
-            return response
-        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+#                 "user": {
+#                     "id": user.id,
+#                     "username": user.username,
+#                     "email": user.email,
+#                     "profile": {
+#                         "city": user.profile.city,
+#                         "contact": user.profile.contact,
+#                         "role": user.profile.role,
+#                     },
+#                 }
+#             }, status=status.HTTP_200_OK)
+#             # Set cookies for refresh and access tokens
+#             response.set_cookie(
+#                 key='access_token',
+#                 value=str(refresh.access_token),
+#                 httponly=True,
+#                 secure=True,  # Set to True in production
+#                 samesite='None',
+#                 expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=10)
+#             )
+#             response.set_cookie(
+#                 key='refresh_token',
+#                 value=str(refresh),
+#                 httponly=True,
+#                 secure=True,  # Set to True in production
+#                 samesite='None',
+#                 expires=datetime.datetime.utcnow() + datetime.timedelta(days=7)
+#             )
+#             return response
+#         return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserDetailAPIView(APIView):
     authentication_classes = [CookieJWTAuthentication]
@@ -163,48 +111,48 @@ class UserDetailAPIView(APIView):
         serializer = UserSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-class RefreshTokenAPIView(APIView):
-    permission_classes = [AllowAny]
+# class RefreshTokenAPIView(APIView):
+#     permission_classes = [AllowAny]
 
-    def post(self, request):
-        refresh_token = request.COOKIES.get('refresh_token')
-        if not refresh_token:
-            return Response({"error": "Refresh token not found in cookies"}, status=status.HTTP_400_BAD_REQUEST)
-        try:
-            refresh = RefreshToken(refresh_token)
-            access_token = refresh.access_token
-            response = Response({
-                "message": "Access token refreshed successfully",
-            }, status=status.HTTP_200_OK)
-            response.set_cookie(
-                key='access_token',
-                value=str(access_token),
-                httponly=True,
-                secure=True,  # Set to True in production
-                samesite='None',
-                expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
-            )
-            return response
-        except Exception as e:
-            return Response({"error": "Invalid refresh token"}, status=status.HTTP_400_BAD_REQUEST)
+#     def post(self, request):
+#         refresh_token = request.COOKIES.get('refresh_token')
+#         if not refresh_token:
+#             return Response({"error": "Refresh token not found in cookies"}, status=status.HTTP_400_BAD_REQUEST)
+#         try:
+#             refresh = RefreshToken(refresh_token)
+#             access_token = refresh.access_token
+#             response = Response({
+#                 "message": "Access token refreshed successfully",
+#             }, status=status.HTTP_200_OK)
+#             response.set_cookie(
+#                 key='access_token',
+#                 value=str(access_token),
+#                 httponly=True,
+#                 secure=True,  # Set to True in production
+#                 samesite='None',
+#                 expires=datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+#             )
+#             return response
+#         except Exception as e:
+#             return Response({"error": "Invalid refresh token"}, status=status.HTTP_400_BAD_REQUEST)
 
-class LogoutAPIView(APIView):
-    authentication_classes = [CookieJWTAuthentication]
-    permission_classes = [IsAuthenticated]
+# class LogoutAPIView(APIView):
+#     authentication_classes = [CookieJWTAuthentication]
+#     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        response = Response({
-            "message": "Logout successful",
-             "action" : "success",
+#     def post(self, request):
+#         response = Response({
+#             "message": "Logout successful",
+#              "action" : "success",
 
-        }, status=status.HTTP_200_OK)
+#         }, status=status.HTTP_200_OK)
         
-        # Delete cookies for access and refresh tokens
-        response.delete_cookie('access_token')
-        response.delete_cookie('refresh_token')
+#         # Delete cookies for access and refresh tokens
+#         response.delete_cookie('access_token')
+#         response.delete_cookie('refresh_token')
 
       
-        return response
+#         return response
 
 class UserAPIView(APIView):
     authentication_classes = [CookieJWTAuthentication]
@@ -315,3 +263,86 @@ class CreatePaymentAPIView(APIView):
 
         return Response({'message' : "working"}, status=status.HTTP_200_OK)
 
+
+class RegisterAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            refresh = RefreshToken.for_user(user)
+
+            return Response({
+                "message": "User created successfully",
+                "action": "success",
+                "access_token": str(refresh.access_token),
+                "refresh_token": str(refresh),
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "profile": {
+                        "city": user.profile.city,
+                        "contact": user.profile.contact,
+                        "role": user.profile.role,
+                    },
+                }
+            }, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class LoginAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user:
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                "message": "Login successful",
+                "action": "success",
+                "access_token": str(refresh.access_token),
+                "refresh_token": str(refresh),
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "profile": {
+                        "city": user.profile.city,
+                        "contact": user.profile.contact,
+                        "role": user.profile.role,
+                    },
+                }
+            }, status=status.HTTP_200_OK)
+
+        return Response({"error": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+class RefreshTokenAPIView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        refresh_token = request.data.get('refresh_token')
+        if not refresh_token:
+            return Response({"error": "Refresh token not provided"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            refresh = RefreshToken(refresh_token)
+            access_token = str(refresh.access_token)
+            return Response({
+                "message": "Access token refreshed successfully",
+                "access_token": access_token
+            }, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": "Invalid or expired refresh token"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogoutAPIView(APIView):
+    permission_classes = [IsAuthenticated]  # Keep for authenticated logout
+
+    def post(self, request):
+        return Response({
+            "message": "Logout successful",
+            "action": "success"
+        }, status=status.HTTP_200_OK)
